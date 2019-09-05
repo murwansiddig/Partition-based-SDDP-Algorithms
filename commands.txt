@@ -1,0 +1,12 @@
+echo 2019-08-02 14:43:53 > runLog.SDDP_HP_eps25T50R.txt; echo Params: SDDP_HP_eps 25T 50R >> runLog.SDDP_HP_eps25T50R.txt; julia MAIN.jl SDDP_HP_eps 25T 50R >> runLog.SDDP_HP_eps25T50R.txt
+echo 2019-08-02 14:43:53 > runLog.SDDP_HP_eps25T200R.txt; echo Params: SDDP_HP_eps 25T 200R >> runLog.SDDP_HP_eps25T200R.txt; julia MAIN.jl SDDP_HP_eps 25T 200R >> runLog.SDDP_HP_eps25T200R.txt
+echo 2019-08-02 14:43:53 > runLog.SDDP_HP_eps25T1000R.txt; echo Params: SDDP_HP_eps 25T 1000R >> runLog.SDDP_HP_eps25T1000R.txt; julia MAIN.jl SDDP_HP_eps 25T 1000R >> runLog.SDDP_HP_eps25T1000R.txt
+echo 2019-08-02 14:43:53 > runLog.SDDP_HP_eps61T50R.txt; echo Params: SDDP_HP_eps 61T 50R >> runLog.SDDP_HP_eps61T50R.txt; julia MAIN.jl SDDP_HP_eps 61T 50R >> runLog.SDDP_HP_eps61T50R.txt
+echo 2019-08-02 14:43:53 > runLog.SDDP_HP_eps61T200R.txt; echo Params: SDDP_HP_eps 61T 200R >> runLog.SDDP_HP_eps61T200R.txt; julia MAIN.jl SDDP_HP_eps 61T 200R >> runLog.SDDP_HP_eps61T200R.txt
+echo 2019-08-02 14:43:53 > runLog.SDDP_HP_eps61T1000R.txt; echo Params: SDDP_HP_eps 61T 1000R >> runLog.SDDP_HP_eps61T1000R.txt; julia MAIN.jl SDDP_HP_eps 61T 1000R >> runLog.SDDP_HP_eps61T1000R.txt
+echo 2019-08-02 14:43:53 > runLog.SDDP_HP_eps97T50R.txt; echo Params: SDDP_HP_eps 97T 50R >> runLog.SDDP_HP_eps97T50R.txt; julia MAIN.jl SDDP_HP_eps 97T 50R >> runLog.SDDP_HP_eps97T50R.txt
+echo 2019-08-02 14:43:53 > runLog.SDDP_HP_eps97T200R.txt; echo Params: SDDP_HP_eps 97T 200R >> runLog.SDDP_HP_eps97T200R.txt; julia MAIN.jl SDDP_HP_eps 97T 200R >> runLog.SDDP_HP_eps97T200R.txt
+echo 2019-08-02 14:43:53 > runLog.SDDP_HP_eps97T1000R.txt; echo Params: SDDP_HP_eps 97T 1000R >> runLog.SDDP_HP_eps97T1000R.txt; julia MAIN.jl SDDP_HP_eps 97T 1000R >> runLog.SDDP_HP_eps97T1000R.txt
+echo 2019-08-02 14:43:53 > runLog.SDDP_HP_eps120T50R.txt; echo Params: SDDP_HP_eps 120T 50R >> runLog.SDDP_HP_eps120T50R.txt; julia MAIN.jl SDDP_HP_eps 120T 50R >> runLog.SDDP_HP_eps120T50R.txt
+echo 2019-08-02 14:43:53 > runLog.SDDP_HP_eps120T200R.txt; echo Params: SDDP_HP_eps 120T 200R >> runLog.SDDP_HP_eps120T200R.txt; julia MAIN.jl SDDP_HP_eps 120T 200R >> runLog.SDDP_HP_eps120T200R.txt
+echo 2019-08-02 14:43:53 > runLog.SDDP_HP_eps120T1000R.txt; echo Params: SDDP_HP_eps 120T 1000R >> runLog.SDDP_HP_eps120T1000R.txt; julia MAIN.jl SDDP_HP_eps 120T 1000R >> runLog.SDDP_HP_eps120T1000R.txt
