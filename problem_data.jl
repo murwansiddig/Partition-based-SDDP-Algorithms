@@ -27,8 +27,9 @@ for t=2:nbStages
     end
 end
 
-
-
+fname = "OSpath.csv"
+OSpath_big = Matrix(CSV.read(fname, DataFrame))
+    
 #parameter that translates the water flow amount into water level in the reservior
 c0 = 2.592;
 

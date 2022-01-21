@@ -1,0 +1,16 @@
+ 
+ 
++------------------------------------------+ 
+| PALMETTO CLUSTER PBS RESOURCES REQUESTED | 
++------------------------------------------+ 
+ 
+mem=1000gb,ncpus=24,walltime=72:00:00
+ 
+ 
++-------------------------------------+ 
+| PALMETTO CLUSTER PBS RESOURCES USED | 
++-------------------------------------+ 
+ 
+cpupercent=1303,cput=97:56:00,mem=73457440kb,ncpus=24,vmem=102355216kb,walltime=10:32:52
+ 
+ 

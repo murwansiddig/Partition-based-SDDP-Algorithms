@@ -1,8 +1,9 @@
+const GRB_ENV = Gurobi.Env();
 
 @everywhere function MVPF(c,data)
 
     #We Start by solving the MVP
-    MVP = Model(solver=GurobiSolver(OutputFlag=0));
+    MVP = Model(solver=GurobiSolver(GRB_ENV,OutputFlag=0));
     
     if c==1
         @variable(MVP,xx[1:nbHydroP,c:nbStages]>=0); #water level of hydro plant h in stage 1
@@ -131,7 +132,7 @@ thetavar = [];
 FBconstr = [];
 
 for t=1:nbStages
-    LP = Model(solver=GurobiSolver(OutputFlag=0));
+    LP = Model(solver=GurobiSolver(GRB_ENV,OutputFlag=0));
     
     if t<nbStages
         @variable(LP,theta[t:t]>=0); #Expected Cost to go function at time t

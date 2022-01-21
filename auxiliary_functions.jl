@@ -89,7 +89,7 @@ end
 #function that generate semi-coarse cuts give a partion P and time period t
 @everywhere function SPSC(data,MasterSubData,xxval,P,c,t,QSC,piSC)
     tt=t+1
-
+#    num_results = zeros(nbRealization);
     #For each scenario in the cluster c we will do the following 
     for k in P[c]
         for h in HReserv
@@ -112,7 +112,6 @@ end
         #We solve the subproblen & obtain its objective value
         statusSPSC = solve(MasterSub[tt]);
         QSC[k] = getobjectivevalue(MasterSub[tt]);
-        
         #We get the dual multiplier of each constraint for this realization
         for h=1:nbHydroP
             piSC[k,h] = getdual(FBconstr[tt][h]);
@@ -122,7 +121,8 @@ end
     return QSC, piSC 
 end
 
-@everywhere function Refine(P,PC,g,piSC,eps)
+@everywhere function Refine(P,PC,g,piSC,eps,QSC,t,xxval)
+    Refine_Start=time();
     temp = [];
     reps = [];
     push!(temp,[PC[g][1]])
@@ -132,11 +132,23 @@ end
         count = 0;
         for s=1:length(temp)
             diff = piSC[PC[g][k],:]-reps[s];
-            if norm(diff) < eps
+            if norm(diff) < eps 
                 push!(temp[s],PC[g][k])
                 break
             else
-                count +=1
+                #println("diff = ", diff)
+                #check if the solution is degenerate solutions
+                obj_diff = sum(piSC[PC[g][k],h]*xxval[h,t] for h in HReserv) - sum(reps[s][h]*xxval[h,t] for h in HReserv) 
+                #println("abs(obj_diff) = ", abs(obj_diff))
+                #println("abs(obj_diff)/sum(reps[s][h]*xxval[h,t] for h in HReserv) = ", abs(obj_diff)/sum(reps[s][h]*xxval[h,t] for h in HReserv))    
+                if abs(obj_diff)/abs(sum(reps[s][h]*xxval[h,t] for h in HReserv)) < eps
+                    #println("abs(obj_diff)/abs(sum(reps[s][h]*xxval[h,t] for h in HReserv)) = ", abs(obj_diff)/abs(sum(reps[s][h]*xxval[h,t] for h in HReserv)))
+                #if abs(obj_diff)/sum(reps[s][h]*xxval[h,t] for h in HReserv) < eps
+                    push!(temp[s],PC[g][k])
+                    break
+                else
+                    count +=1
+                end
             end
         end
         if count == length(temp)
@@ -149,8 +161,9 @@ end
     for i=1:length(temp)
         push!(P,temp[i])
     end
-
-    return P
+    
+    elaps = time()-Refine_Start;
+    return P, elaps
 end
 
 @everywhere function Type1_cut(MasterSubData,data,Part,SPC,t,xxval,tthetaval,eps,SP,k)
@@ -185,7 +198,7 @@ end
     return cut_added, QC, piC
 end
 
-@everywhere function Type2_cut(MasterSubData,Part,SPC,SPSC,data,t,xxval,tthetaval,Refine,eps,SP,k,QC,piC)
+@everywhere function Type2_cut(MasterSubData,Part,SPC,SPSC,data,t,xxval,tthetaval,Refine,eps,SP,k,QC,piC,Refinement_time)
     #Type_2 cut == semi-coarse cut
     cut_counter = 0;
     #sort!(Part[t+1], by=length, rev=true)
@@ -227,7 +240,9 @@ end
 
                  cut_counter += 1
                  for g=1:c
-                     P = Refine(P,PC,g,piSC,eps)
+                     #P, elaps = Refine(P,PC,g,piSC,eps,QSC)
+                     P, elaps = Refine(P,PC,g,piSC,eps,QSC,t,xxval)
+                     push!(Refinement_time,elaps)
                  end
                 
                  break
@@ -257,14 +272,16 @@ end
                 cut_counter += 1;
                 
                 for g=1:c
-                    P = Refine(P,PC,g,piSC,eps)
+                    #P, elaps = Refine(P,PC,g,piSC,eps,QSC)
+                    P, elaps = Refine(P,PC,g,piSC,eps,QSC,t,xxval)
+                    push!(Refinement_time,elaps)
                 end
             ########################################################    
             end
         end
     end
 
-    return P, cut_counter
+    return P, cut_counter, Refinement_time
 end
 
 @everywhere function Type3_cut(MasterSubData,data,t,xval,thetaval,eps,SP,k)
@@ -310,7 +327,7 @@ end
     return cut_count
 end
 
-@everywhere function Type4_cut(MasterSubData,Part,SPC,SPSC,data,t,xxval,tthetaval,Refine,eps,SP,k)
+@everywhere function Type4_cut(MasterSubData,Part,SPC,SPSC,data,t,xxval,tthetaval,Refine,eps,SP,k,Refinement_time)
     #Type_2 cut == semi-coarse cut
     cut_counter = 0;
     #sort!(Part[t+1], by=length, rev=true)
@@ -347,13 +364,15 @@ end
 
          cut_counter += 1
          for c=1:length(PC)
-             P = Refine(P,PC,c,piSC,eps)
+             #P, elaps = Refine(P,PC,g,piSC,eps,QSC)
+             P, elaps = Refine(P,PC,g,piSC,eps,QSC,t,xxval)
+             push!(Refinement_time,elaps)
          end
 
     ##############################################################################################
     end
 
-    return P, cut_counter
+    return P, cut_counter, Refinement_time
 end
 
 @everywhere function forward_pass(MasterSubData,data,nbSP,SP,xval,thetaval,LB)
@@ -361,7 +380,8 @@ end
     UB_SP = zeros(nbSP);
     for k=1:nbSP
         tempUB = 0;
-        for t=1:nbStages            
+        for t=1:nbStages
+
             J=SP[k,t]
             j= convert(Int64, J)
             #We start updating the RHS of flow balance constraint
@@ -385,12 +405,13 @@ end
             end
             local_cost = sum(cf[f]*getvalue(gvar[t][f,t]) for f=1:nbThermoP)+cp*getvalue(pvar[t]);
             tempUB +=local_cost
+            
+            
         end
         UB_SP[k]=tempUB
     end
     UB = sum(UB_SP[k] for k=1:nbSP)/nbSP
-    
-    return LB, xval, thetaval, UB
+    return LB, xval, thetaval, UB, UB_SP
 end
 
 @everywhere function inner_forward_pass(MasterSubData,data,nbSP,SP,xxval,tthetaval,range,k)
@@ -637,31 +658,36 @@ end
 
 #Initialization
 
-@everywhere function initialize(nbRealization,nbStages,nbHydroP);
-
+@everywhere function initialize(nbRealization,nbStages,nbHydroP,nbSP_F);
+     indicator = 0;
     ###############################################################################
     ###############################################################################
-    indicator = 0;
-    if nbRealization^(nbStages-1) < 1000 && nbRealization^(nbStages-1) > 0
-        nbSP = nbRealization^(nbStages-1);
-        SP = zeros(nbSP,nbStages);
-        SP[:,1]=1;
-        Realization_list = [];
-        for t=1:nbRealization
-            push!(Realization_list,t)
-        end
-        templist = collect(with_repetitions_permutations(Realization_list, nbStages-1));
-        for k=1:nbSP
-            for t=1:nbStages-1
-                SP[k,t+1]=templist[k][t]
-            end
-        end
+    if nbSP_F == 10000
+        SP = OSpath_big
+        nbSP = nbSP_F;
     else
-        indicator =1;
-        nbSP = 1;
-        SP = zeros(nbSP,nbStages);
-        SP[:,:]=rand(1:nbRealization, nbSP,nbStages);
-        SP[:,1]=1;
+        indicator = 0;
+        if nbRealization^(nbStages-1) < 1000 && nbRealization^(nbStages-1) > 0
+            nbSP = nbRealization^(nbStages-1);
+            SP = zeros(nbSP,nbStages);
+            SP[:,1]=1;
+            Realization_list = [];
+            for t=1:nbRealization
+                push!(Realization_list,t)
+            end
+            templist = collect(with_repetitions_permutations(Realization_list, nbStages-1));
+            for k=1:nbSP
+                for t=1:nbStages-1
+                    SP[k,t+1]=templist[k][t]
+                end
+            end
+        else
+            indicator =1;
+            nbSP = nbSP_F;
+            SP = zeros(nbSP,nbStages);
+            SP[:,:]=rand(1:nbRealization, nbSP,nbStages);
+            SP[:,1]=1;
+        end
     end
     ###############################################################################
     ###############################################################################
